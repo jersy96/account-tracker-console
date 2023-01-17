@@ -1114,7 +1114,7 @@ import 'dart:io';
 void main() {
   int menu = 0;
   AccountTracker tracker = AccountTracker();
-  Console c = Console();
+  Console c = Console(tracker);
 
   while (true) {
     c.showMenu();
@@ -1122,166 +1122,18 @@ void main() {
 
     print(menu);
 
-    if (menu == 1) {
-      print('como se llamara su cuenta?');
-
-      String name = c.read_string();
-
-      while (name == '') {
-        print('porfavor coloque un nombre a la cuenta ');
-        name = c.read_string();
-      }
-
-      print('digite el saldo inicial de la cuenta ');
-
-      double balance = c.read_double();
-
-      while (balance < 0) {
-        print('porfavor digite saldo mayor a cero ');
-        balance = c.read_double();
-      }
-
-      print('su cuenta es virtual ?   Marque 1. si lo es. ');
-      bool virtual = c.read_bool();
-      if (virtual == true) {
-        print('su cuenta es digital');
-      }
-
-      if (virtual == false) {
-        print('su cuenta es fisica');
-      }
-
-      Account account = Account.create(name, virtual, balance);
-      tracker.accounts.add(account);
-    }
-
-    if (menu == 0) {
-      break;
-    }
-
-    if (menu == 2) {
-      for (int i = 0; i < tracker.accounts.length; i++) {
-        print(tracker.accounts[i]);
-      }
-      if (tracker.accounts.length <= 0) {
-        print('Aun no hay cuentas');
-      }
-    }
-
-    if (menu == 3) {
-      List<Account> physical = tracker.whereVirtual(false);
-
-      if (physical.length <= 0) {
-        print(
-            'No hay ninguna cuenta fisica debe crear almenos una para poder crear movimientos');
-        continue;
-      }
-
-      print('digite la descripcion ');
-      String description = c.read_string();
-
-      print(
-          'La transaccion es un ingreso o un gasto?    ingreso (1)     gasto (2)');
-      bool income = c.read_bool();
-
-      bool repeatAccountPhysic = true;
-      List<TransactionDetail> details = [];
-      Set<int> chossenAccounts = {};
-
-      while (repeatAccountPhysic) {
-        Account? accountSelected;
-        do {
-          print('seleccione una cuenta fisica');
-          for (int i = 0; i < physical.length; i++) {
-            print(physical[i]);
-          }
-          print('digite la cuenta a selecionar');
-          print(chossenAccounts);
-          int id = c.read_int();
-          bool added = chossenAccounts.contains(id);
-          print(added);
-          if (added) {
-            print('Ya esta cuenta esta seleccionada');
-          } else {
-            accountSelected = tracker.firstWhereId(id);
-            if (accountSelected == null) {
-              print('Esta cuenta no existe');
-            } else if (accountSelected.virtual) {
-              print('Esta cuenta es virtual.');
-            } else {
-              chossenAccounts.add(id);
-            }
-          }
-        } while (accountSelected == null || accountSelected.virtual);
-
-        print('digite el valor ');
-
-        double value = c.read_double();
-
-        TransactionDetail detail = TransactionDetail(accountSelected, value);
-
-        details.add(detail);
-        print(
-            'desea seleccionar otra cuenta fisica ?     digite 1. SI     2. NO');
-
-        repeatAccountPhysic = c.read_bool();
-      }
-
-      bool repeatAccountvirtual = true;
-
-      while (repeatAccountvirtual) {
-        Account? accountSelected;
-        do {
-          print('seleccione una cuenta virtual');
-
-          List<Account> virtual = tracker.whereVirtual(true);
-
-          for (int i = 0; i < virtual.length; i++) {
-            print(virtual[i]);
-          }
-          print('digite la cuenta a selecionar');
-          int id = c.read_int();
-          accountSelected = tracker.firstWhereId(id);
-          if (accountSelected == null) {
-            print('Esta cuenta no existe');
-          } else if (!accountSelected.virtual) {
-            print('Esta cuenta es fisica');
-          }
-        } while (accountSelected == null || !accountSelected.virtual);
-
-        bool confirmed = false;
-        while (!confirmed) {
-          print('digite el valor ');
-
-          double value = c.read_double();
-
-          List<TransactionDetail> detailVirtual =
-              details.where((detail) => detail.account.virtual).toList();
-          List<TransactionDetail> detailReal =
-              details.where((detail) => !detail.account.virtual).toList();
-          double sumvirtual = sum(detailVirtual);
-          double sumreal = sum(detailReal) + value;
-
-          if (sumvirtual > sumreal) {
-            print(
-                'las cuentas virtuales no puede ser mayor que las fisicas. porfavor digitar el valor nuevamente');
-          } else {
-            confirmed = true;
-          }
-
-          TransactionDetail detail = TransactionDetail(accountSelected, value);
-          details.add(detail);
-        }
-
-        print(
-            'deseas seleccionar otra cuenta virtual?.  digite 1. SI     2. NO');
-        repeatAccountvirtual = c.read_bool();
-      }
-    }
+    if (menu == 0) break;
+    if (menu == 1) c.askAccount();
+    if (menu == 2) c.showAccounts();
+    if (menu == 3) c.askTransaction();
   }
 }
 
 class Console {
+  AccountTracker tracker;
+
+  Console(this.tracker);
+
   void showMenu() {
     print('0. salir ');
     print('1. crear cuenta');
@@ -1303,6 +1155,151 @@ class Console {
 
   bool read_bool() {
     return stdin.readLineSync().toString() == "1";
+  }
+
+  askAccount() {
+    print('como se llamara su cuenta?');
+
+    String name = read_string();
+
+    while (name == '') {
+      print('porfavor coloque un nombre a la cuenta ');
+      name = read_string();
+    }
+
+    print('digite el saldo inicial de la cuenta ');
+
+    double balance = read_double();
+
+    while (balance < 0) {
+      print('porfavor digite saldo mayor a cero ');
+      balance = read_double();
+    }
+
+    print('su cuenta es virtual ?   Marque 1. si lo es. ');
+    bool virtual = read_bool();
+    if (virtual == true) {
+      print('su cuenta es digital');
+    }
+
+    if (virtual == false) {
+      print('su cuenta es fisica');
+    }
+
+    Account account = Account.create(name, virtual, balance);
+    tracker.accounts.add(account);
+  }
+
+  showAccounts() {
+    showItems(tracker.accounts);
+    if (tracker.accounts.length <= 0) {
+      print('Aun no hay cuentas');
+    }
+  }
+
+  askTransaction() {
+    List<Account> physical = tracker.whereVirtual(false);
+
+    if (physical.length <= 0) {
+      print(
+          'No hay ninguna cuenta fisica debe crear almenos una para poder crear movimientos');
+      return;
+    }
+
+    print('digite la descripcion ');
+    String description = read_string();
+
+    print(
+        'La transaccion es un ingreso o un gasto?    ingreso (1)     gasto (2)');
+    bool income = read_bool();
+
+    bool repeatAccountPhysic = true;
+    List<TransactionDetail> details = [];
+    Set<int> chossenAccounts = {};
+
+    while (repeatAccountPhysic) {
+      Account accountSelected = selectAccount(
+          'seleccione una cuenta fisica', physical, chossenAccounts);
+
+      print('digite el valor ');
+
+      double value = read_double();
+
+      TransactionDetail detail = TransactionDetail(accountSelected, value);
+
+      details.add(detail);
+      print(
+          'desea seleccionar otra cuenta fisica ?     digite 1. SI     2. NO');
+
+      repeatAccountPhysic = read_bool();
+    }
+
+    bool repeatAccountvirtual = true;
+
+    while (repeatAccountvirtual) {
+      List<Account> virtual = tracker.whereVirtual(true);
+      Account accountSelected = selectAccount(
+          'seleccione una cuenta virtual', virtual, chossenAccounts);
+
+      bool confirmed = false;
+      while (!confirmed) {
+        print('digite el valor ');
+
+        double value = read_double();
+
+        List<TransactionDetail> detailVirtual =
+            details.where((detail) => detail.account.virtual).toList();
+        List<TransactionDetail> detailReal =
+            details.where((detail) => !detail.account.virtual).toList();
+        double sumvirtual = sum(detailVirtual);
+        double sumreal = sum(detailReal) + value;
+
+        if (sumvirtual > sumreal) {
+          print(
+              'las cuentas virtuales no puede ser mayor que las fisicas. porfavor digitar el valor nuevamente');
+        } else {
+          confirmed = true;
+        }
+
+        TransactionDetail detail = TransactionDetail(accountSelected, value);
+        details.add(detail);
+      }
+
+      print('deseas seleccionar otra cuenta virtual?.  digite 1. SI     2. NO');
+      repeatAccountvirtual = read_bool();
+    }
+  }
+
+  Account selectAccount(
+      String message, List<Account> accounts, Set<int> chossenAccounts) {
+    Account? accountSelected;
+    do {
+      print(message);
+      showItems(accounts);
+      print('digite la cuenta a selecionar');
+      int id = read_int();
+      bool added = chossenAccounts.contains(id);
+      print(added);
+      if (added) {
+        print('Ya esta cuenta esta seleccionada');
+      } else {
+        accountSelected = tracker.firstWhereId(id);
+        if (accountSelected == null) {
+          print('Esta cuenta no existe');
+        } else if (accountSelected.virtual) {
+          print('Esta cuenta es virtual.');
+        } else {
+          chossenAccounts.add(id);
+        }
+      }
+    } while (accountSelected == null || accountSelected.virtual);
+    return accountSelected;
+  }
+
+  showItems(List items) {
+    for (int i = 0; i < items.length; i++) {
+      print(items[i]);
+    }
   }
 }
 
