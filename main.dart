@@ -1163,12 +1163,17 @@ void main() {
       for (int i = 0; i < tracker.accounts.length; i++) {
         print(tracker.accounts[i]);
       }
+      if (tracker.accounts.length <= 0) {
+        print('Aun no hay cuentas');
+      }
     }
 
     if (menu == 3) {
       List<Account> physical = tracker.whereVirtual(false);
 
       if (physical.length <= 0) {
+        print(
+            'No hay ninguna cuenta fisica debe crear almenos una para poder crear movimientos');
         continue;
       }
 
@@ -1181,6 +1186,7 @@ void main() {
 
       bool repeatAccountPhysic = true;
       List<TransactionDetail> details = [];
+      Set<int> chossenAccounts = {};
 
       while (repeatAccountPhysic) {
         Account? accountSelected;
@@ -1190,12 +1196,21 @@ void main() {
             print(physical[i]);
           }
           print('digite la cuenta a selecionar');
+          print(chossenAccounts);
           int id = c.read_int();
-          accountSelected = tracker.firstWhereId(id);
-          if (accountSelected == null) {
-            print('Esta cuenta no existe');
-          } else if (accountSelected.virtual) {
-            print('Esta cuenta no es fisica');
+          bool added = chossenAccounts.contains(id);
+          print(added);
+          if (added) {
+            print('Ya esta cuenta esta seleccionada');
+          } else {
+            accountSelected = tracker.firstWhereId(id);
+            if (accountSelected == null) {
+              print('Esta cuenta no existe');
+            } else if (accountSelected.virtual) {
+              print('Esta cuenta es virtual.');
+            } else {
+              chossenAccounts.add(id);
+            }
           }
         } while (accountSelected == null || accountSelected.virtual);
 
@@ -1206,7 +1221,6 @@ void main() {
         TransactionDetail detail = TransactionDetail(accountSelected, value);
 
         details.add(detail);
-
         print(
             'desea seleccionar otra cuenta fisica ?     digite 1. SI     2. NO');
 
@@ -1258,6 +1272,7 @@ void main() {
           TransactionDetail detail = TransactionDetail(accountSelected, value);
           details.add(detail);
         }
+
         print(
             'deseas seleccionar otra cuenta virtual?.  digite 1. SI     2. NO');
         repeatAccountvirtual = c.read_bool();
@@ -1299,7 +1314,11 @@ class AccountTracker {
   }
 
   Account? firstWhereId(int id) {
-    return accounts.firstWhere((account) => account.id == id, orElse: null);
+    try {
+      return accounts.firstWhere((account) => account.id == id);
+    } catch (e) {
+      return null;
+    }
   }
 }
 
