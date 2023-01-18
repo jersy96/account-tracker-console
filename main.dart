@@ -1219,7 +1219,7 @@ class Console {
 
     while (repeatAccountPhysic) {
       Account accountSelected = selectAccount(
-          'seleccione una cuenta fisica', physical, chossenAccounts);
+          'seleccione una cuenta fisica', physical, chossenAccounts, false);
 
       print('digite el valor ');
 
@@ -1228,10 +1228,13 @@ class Console {
       TransactionDetail detail = TransactionDetail(accountSelected, value);
 
       details.add(detail);
-      print(
-          'desea seleccionar otra cuenta fisica ?     digite 1. SI     2. NO');
-
-      repeatAccountPhysic = read_bool();
+      if (physical.length <= 0) {
+        repeatAccountPhysic = false;
+      } else {
+        print(
+            'desea seleccionar otra cuenta fisica ?     digite 1. SI     2. NO');
+        repeatAccountPhysic = read_bool();
+      }
     }
 
     bool repeatAccountvirtual = true;
@@ -1239,7 +1242,7 @@ class Console {
     while (repeatAccountvirtual) {
       List<Account> virtual = tracker.whereVirtual(true);
       Account accountSelected = selectAccount(
-          'seleccione una cuenta virtual', virtual, chossenAccounts);
+          'seleccione una cuenta virtual', virtual, chossenAccounts, true);
 
       bool confirmed = false;
       while (!confirmed) {
@@ -1264,35 +1267,44 @@ class Console {
         TransactionDetail detail = TransactionDetail(accountSelected, value);
         details.add(detail);
       }
-
-      print('deseas seleccionar otra cuenta virtual?.  digite 1. SI     2. NO');
-      repeatAccountvirtual = read_bool();
+      if (virtual.length <= 0) {
+        repeatAccountvirtual = false;
+      } else {
+        print(
+            'deseas seleccionar otra cuenta virtual?.  digite 1. SI     2. NO');
+        repeatAccountvirtual = read_bool();
+      }
     }
   }
 
-  Account selectAccount(
-      String message, List<Account> accounts, Set<int> chossenAccounts) {
+  Account selectAccount(String message, List<Account> accounts,
+      Set<int> chossenAccounts, bool virtual) {
     Account? accountSelected;
+
     do {
       print(message);
       showItems(accounts);
       print('digite la cuenta a selecionar');
       int id = read_int();
       bool added = chossenAccounts.contains(id);
-      print(added);
       if (added) {
         print('Ya esta cuenta esta seleccionada');
       } else {
         accountSelected = tracker.firstWhereId(id);
         if (accountSelected == null) {
           print('Esta cuenta no existe');
-        } else if (accountSelected.virtual) {
-          print('Esta cuenta es virtual.');
+        } else if (accountSelected.virtual != virtual) {
+          if (accountSelected.virtual) {
+            print('esta cuenta es virual');
+          } else {
+            print('esta cuenta es fisica');
+          }
         } else {
           chossenAccounts.add(id);
+          accounts.removeWhere((account) => account.id == id);
         }
       }
-    } while (accountSelected == null || accountSelected.virtual);
+    } while (accountSelected == null || accountSelected.virtual != virtual);
     return accountSelected;
   }
 
@@ -1304,7 +1316,10 @@ class Console {
 }
 
 class AccountTracker {
-  List<Account> accounts = [];
+  List<Account> accounts = [
+    Account.create('bancolombia', false, 1000),
+    Account.create('vacaciones', true, 500),
+  ];
 
   List<Account> whereVirtual(bool virtual) {
     return accounts.where((account) => account.virtual == virtual).toList();
