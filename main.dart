@@ -1112,20 +1112,16 @@ import 'dart:io';
 // }
 
 void main() {
-  int menu = 0;
+  int? option;
   AccountTracker tracker = AccountTracker();
   Console c = Console(tracker);
 
-  while (true) {
-    c.showMenu();
-    menu = c.read_int();
+  while (option != 0) {
+    option = c.askOption();
 
-    print(menu);
-
-    if (menu == 0) break;
-    if (menu == 1) c.askAccount();
-    if (menu == 2) c.showAccounts();
-    if (menu == 3) c.askTransaction();
+    if (option == 1) c.askAccount();
+    if (option == 2) c.showAccounts();
+    if (option == 3) c.askTransaction();
   }
 }
 
@@ -1134,11 +1130,15 @@ class Console {
 
   Console(this.tracker);
 
-  void showMenu() {
+  int askOption() {
+    print('---Menu---');
     print('0. salir ');
     print('1. crear cuenta');
     print('2. mostrar cuentas');
     print('3. crear movimiento');
+    int option = read_int();
+    print('');
+    return option;
   }
 
   int read_int() {
@@ -1206,24 +1206,34 @@ class Console {
       return;
     }
 
-    print('digite la descripcion ');
-    String description = read_string();
-
-    print(
-        'La transaccion es un ingreso o un gasto?    ingreso (1)     gasto (2)');
-    bool income = read_bool();
-
     bool repeatAccountPhysic = true;
     List<TransactionDetail> details = [];
     Set<int> chossenAccounts = {};
 
+    print('');
+    print('---Cuentas Fisicas---');
     while (repeatAccountPhysic) {
+      print('digite la descripcion ');
+      String description = read_string();
       Account accountSelected = selectAccount(
           'seleccione una cuenta fisica', physical, chossenAccounts, false);
-
-      print('digite el valor ');
-
-      double value = read_double();
+      print(
+          'La transaccion es un ingreso o un gasto?    ingreso (1)     gasto (2)');
+      bool income = read_bool();
+      bool invalidValue = true;
+      double value;
+      do {
+        print('digite el valor ');
+        value = read_double();
+        if (income) {
+          invalidValue = false;
+        } else {
+          invalidValue = value > accountSelected.balance;
+        }
+        if (invalidValue) {
+          print('Error: este valor supera el saldo de la cuenta');
+        }
+      } while (invalidValue);
 
       TransactionDetail detail = TransactionDetail(accountSelected, value);
 
@@ -1238,20 +1248,37 @@ class Console {
     }
 
     bool repeatAccountvirtual = true;
+    print('');
+    print('---Cuentas Virtuales---');
 
     while (repeatAccountvirtual) {
+      print('digite la descripcion');
+      String description = read_string();
       List<Account> virtual = tracker.whereVirtual(true);
       Account accountSelected = selectAccount(
           'seleccione una cuenta virtual', virtual, chossenAccounts, true);
 
       bool confirmed = false;
       while (!confirmed) {
-        print('digite el valor ');
+        print(
+            'La transaccion es un ingreso o un gasto?    ingreso (1)     gasto (2)');
+        bool income = read_bool();
 
-        double value = read_double();
+        bool invalidValue = true;
+        double value;
+        do {
+          print('digite el valor ');
+          value = read_double();
+          if (income) {
+            invalidValue = false;
+          } else {
+            invalidValue = value > accountSelected.balance;
+          }
+        } while (invalidValue);
 
         List<TransactionDetail> detailVirtual =
             details.where((detail) => detail.account.virtual).toList();
+
         List<TransactionDetail> detailReal =
             details.where((detail) => !detail.account.virtual).toList();
         double sumvirtual = sum(detailVirtual);
