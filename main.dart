@@ -6,11 +6,18 @@ void main() {
   Console c = Console(tracker);
 
   while (option != 0) {
+    if (option != null) print('');
     option = c.askOption();
 
-    if (option == 1) c.askAccount();
-    if (option == 2) c.showAccounts();
-    if (option == 3) c.askTransaction();
+    if (option == 1) {
+      c.askAccount();
+    }
+    if (option == 2) {
+      c.showAccounts();
+    }
+    if (option == 3) {
+      c.askTransaction();
+    }
   }
 }
 
@@ -47,34 +54,17 @@ class Console {
   }
 
   askAccount() {
-    print('como se llamara su cuenta?');
-
-    String name = read_string();
-
-    while (name == '') {
-      print('porfavor coloque un nombre a la cuenta ');
-      name = read_string();
-    }
-
-    print('digite el saldo inicial de la cuenta ');
-
-    double balance = read_double();
-
-    while (balance < 0) {
-      print('porfavor digite saldo mayor a cero ');
-      balance = read_double();
-    }
-
-    print('su cuenta es virtual ?   Marque 1. si lo es. ');
-    bool virtual = read_bool();
-    if (virtual == true) {
-      print('su cuenta es digital');
-    }
-
-    if (virtual == false) {
+    String name = askField<String>('Como se llamara su cuenta?',
+        'Por favor coloque un nombre a la cuenta', (value) => value != '');
+    double balance = askField<double>('Digite el saldo inicial de la cuenta',
+        'Por favor digite saldo mayor a cero ', (value) => value > 0);
+    bool virtual = askField<bool>(
+        'Su cuenta es virtual ? Marque 1. si lo es. ', null, null);
+    if (virtual) {
+      print('su cuenta es virtual');
+    } else {
       print('su cuenta es fisica');
     }
-
     Account account = Account.create(name, virtual, balance);
     tracker.accounts.add(account);
   }
@@ -224,6 +214,28 @@ class Console {
     return accountSelected;
   }
 
+  T askField<T>(String message, String? errorMessage, Function? validate) {
+    var value;
+    bool valid;
+    do {
+      print(message);
+      if (T == String) {
+        value = read_string();
+      } else if (T == int) {
+        value = read_int();
+      } else if (T == double) {
+        value = read_double();
+      } else if (T == bool) {
+        value = read_bool();
+      }
+      valid = validate == null ? true : validate(value);
+      if (!valid) {
+        print(errorMessage);
+      }
+    } while (!valid);
+    return value;
+  }
+
   showItems(List items) {
     for (int i = 0; i < items.length; i++) {
       print(items[i]);
@@ -300,5 +312,3 @@ double sum(List<TransactionDetail> details) {
   }
   return sum;
 }
-
-createAccount(Console) {}
