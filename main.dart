@@ -54,12 +54,14 @@ class Console {
   }
 
   askAccount() {
-    String name = askField<String>('Como se llamara su cuenta?',
+    String name = validateField<String>('Como se llamara su cuenta?',
         'Por favor coloque un nombre a la cuenta', (value) => value != '');
-    double balance = askField<double>('Digite el saldo inicial de la cuenta',
-        'Por favor digite saldo mayor a cero ', (value) => value > 0);
-    bool virtual = askField<bool>(
-        'Su cuenta es virtual ? Marque 1. si lo es. ', null, null);
+    double balance = validateField<double>(
+        'Digite el saldo inicial de la cuenta',
+        'Por favor digite saldo mayor a cero ',
+        (value) => value > 0);
+    print('Su cuenta es virtual ? Marque 1. si lo es. ');
+    bool virtual = read_bool();
     if (virtual) {
       print('su cuenta es virtual');
     } else {
@@ -91,9 +93,9 @@ class Console {
 
     print('');
     print('---Cuentas Fisicas---');
+    String description = validateField<String>('digite la descripcion',
+        'coloque la descripcion', (value) => value != '');
     while (repeatAccountPhysic) {
-      print('digite la descripcion ');
-      String description = read_string();
       Account accountSelected = selectAccount(
           'seleccione una cuenta fisica', physical, chossenAccounts, false);
       print(
@@ -214,7 +216,7 @@ class Console {
     return accountSelected;
   }
 
-  T askField<T>(String message, String? errorMessage, Function? validate) {
+  T validateField<T>(String message, String errorMessage, Function validate) {
     var value;
     bool valid;
     do {
