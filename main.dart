@@ -120,14 +120,14 @@ class Console {
         repeatAccountPhysic = read_bool();
       }
     }
-
-    bool repeatAccountvirtual = true;
     print('');
-    print('---Cuentas Virtuales---');
+
+    print('desea agregar una cuenta virtual?     digite 1. SI     2. NO');
+    bool repeatAccountvirtual = read_bool();
+
+    if (repeatAccountvirtual) print('---Cuentas Virtuales---');
 
     while (repeatAccountvirtual) {
-      String description = validateField<String>('digite la descripcion',
-          'coloque la descripcion', (value) => value != '');
       List<Account> virtual = tracker.whereVirtual(true);
       Account accountSelected = selectAccount(
           'seleccione una cuenta virtual', virtual, chossenAccounts, true);
