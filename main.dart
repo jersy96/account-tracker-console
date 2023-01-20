@@ -108,6 +108,12 @@ class Console {
         return income ? true : value <= accountSelected.balance;
       });
 
+      if (income) {
+        accountSelected.balance += val;
+      } else {
+        accountSelected.balance -= val;
+      }
+
       TransactionDetail detail = TransactionDetail(accountSelected, val);
 
       details.add(detail);
@@ -160,6 +166,12 @@ class Console {
               'las cuentas virtuales no puede ser mayor que las fisicas. porfavor digitar el valor nuevamente');
         } else {
           confirmed = true;
+        }
+
+        if (income) {
+          accountSelected.balance += value;
+        } else {
+          accountSelected.balance -= value;
         }
 
         TransactionDetail detail = TransactionDetail(accountSelected, value);
