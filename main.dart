@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:core';
 
 void main() {
   int? option;
@@ -31,7 +32,7 @@ class Console {
     print('0. salir ');
     print('1. crear cuenta');
     print('2. mostrar cuentas');
-    print('3. crear movimiento');
+    print('3. crear transacciones');
     int option = read_int();
     print('');
     return option;
@@ -95,30 +96,22 @@ class Console {
     print('---Cuentas Fisicas---');
     String description = validateField<String>('digite la descripcion',
         'coloque la descripcion', (value) => value != '');
+    print(
+        'La transaccion es un ingreso o un gasto?    ingreso (1)     gasto (2)');
+    bool income = read_bool();
     while (repeatAccountPhysic) {
       Account accountSelected = selectAccount(
           'seleccione una cuenta fisica', physical, chossenAccounts, false);
-      print(
-          'La transaccion es un ingreso o un gasto?    ingreso (1)     gasto (2)');
-      bool income = read_bool();
-      bool invalidValue = true;
-      double value;
-      do {
-        print('digite el valor ');
-        value = read_double();
-        if (income) {
-          invalidValue = false;
-        } else {
-          invalidValue = value > accountSelected.balance;
-        }
-        if (invalidValue) {
-          print('Error: este valor supera el saldo de la cuenta');
-        }
-      } while (invalidValue);
+      double val = validateField<double>(
+          'digite el valor ', 'Error: digite bien su saldo ', (value) {
+        if (value <= 0) return false;
+        return income ? true : value <= accountSelected.balance;
+      });
 
-      TransactionDetail detail = TransactionDetail(accountSelected, value);
+      TransactionDetail detail = TransactionDetail(accountSelected, val);
 
       details.add(detail);
+
       if (physical.length <= 0) {
         repeatAccountPhysic = false;
       } else {
@@ -133,18 +126,15 @@ class Console {
     print('---Cuentas Virtuales---');
 
     while (repeatAccountvirtual) {
-      print('digite la descripcion');
-      String description = read_string();
+      String description = validateField<String>('digite la descripcion',
+          'coloque la descripcion', (value) => value != '');
       List<Account> virtual = tracker.whereVirtual(true);
       Account accountSelected = selectAccount(
           'seleccione una cuenta virtual', virtual, chossenAccounts, true);
 
       bool confirmed = false;
-      while (!confirmed) {
-        print(
-            'La transaccion es un ingreso o un gasto?    ingreso (1)     gasto (2)');
-        bool income = read_bool();
 
+      while (!confirmed) {
         bool invalidValue = true;
         double value;
         do {
@@ -183,6 +173,11 @@ class Console {
         repeatAccountvirtual = read_bool();
       }
     }
+    DateTime date = DateTime.now();
+    Transaction transaction = Transaction(description, date, income);
+    tracker.transactions.add(transaction);
+
+    print('Fecha de transaccion: ${date} ');
   }
 
   Account selectAccount(String message, List<Account> accounts,
@@ -250,6 +245,7 @@ class AccountTracker {
     Account.create('bancolombia', false, 1000),
     Account.create('vacaciones', true, 500),
   ];
+  List<Transaction> transactions = [];
 
   List<Account> whereVirtual(bool virtual) {
     return accounts.where((account) => account.virtual == virtual).toList();
