@@ -225,7 +225,7 @@ class Console {
       } else if (T == bool) {
         value = read_bool();
       }
-      valid = validate == null ? true : validate(value);
+      valid = validate(value);
       if (!valid) {
         print(errorMessage);
       }
