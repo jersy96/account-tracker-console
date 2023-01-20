@@ -81,35 +81,27 @@ class Console {
 
   askTransaction() {
     List<Account> physical = tracker.whereVirtual(false);
-
     if (physical.length <= 0) {
       print(
           'No hay ninguna cuenta fisica debe crear almenos una para poder crear movimientos');
       return;
     }
-
-    bool repeatAccountPhysic = true;
     List<TransactionDetail> details = [];
     Set<int> chossenAccounts = {};
 
-    print('');
-    print('---Cuentas Fisicas---');
-    String description = validateField<String>('digite la descripcion',
-        'coloque la descripcion', (value) => value != '');
-    print(
-        'La transaccion es un ingreso o un gasto?    ingreso (1)     gasto (2)');
+    String description = validateField<String>(
+      'digite la descripcion', 'coloque la descripcion', (value) => value != ''
+    );
+
+    print('La transaccion es un ingreso o un gasto?    ingreso (1)     gasto (2)');
     bool income = read_bool();
+
+    print('---Cuentas Fisicas---');
+    bool repeatAccountPhysic = true;
     while (repeatAccountPhysic) {
-      Account accountSelected = selectAccount(
-          'seleccione una cuenta fisica', physical, chossenAccounts, false);
-      double val = validateField<double>(
-          'digite el valor ', 'Error: digite bien su saldo ', (value) {
-        if (value <= 0) return false;
-        return income ? true : value <= accountSelected.balance;
-      });
-
-      TransactionDetail detail = TransactionDetail(accountSelected, val);
-
+      TransactionDetail detail = askTransactionDetail(
+        physical, chossenAccounts, income
+      );
       details.add(detail);
 
       if (physical.length <= 0) {
@@ -161,10 +153,11 @@ class Console {
         } else {
           confirmed = true;
         }
-
-        TransactionDetail detail = TransactionDetail(accountSelected, value);
-        details.add(detail);
       }
+      TransactionDetail detail = askTransactionDetail(
+        virtual, chossenAccounts, income
+      );
+      details.add(detail);
       if (virtual.length <= 0) {
         repeatAccountvirtual = false;
       } else {
@@ -180,10 +173,19 @@ class Console {
     print('Fecha de transaccion: ${date} ');
   }
 
-  Account selectAccount(String message, List<Account> accounts,
-      Set<int> chossenAccounts, bool virtual) {
-    Account? accountSelected;
+  TransactionDetail askTransactionDetail(List<Account> accounts, Set<int> chossenAccounts, bool income) {
+    Account accountSelected = selectAccount(
+        'seleccione una cuenta fisica', accounts, chossenAccounts, false);
+    double val = validateField<double>(
+        'digite el valor ', 'Error: digite bien su saldo ', (value) {
+      if (value <= 0) return false;
+      return income ? true : value <= accountSelected.balance;
+    });
+    return TransactionDetail(accountSelected, val);
+  }
 
+  Account selectAccount(String message, List<Account> accounts, Set<int> chossenAccounts, bool virtual) {
+    Account? accountSelected;
     do {
       print(message);
       showItems(accounts);
