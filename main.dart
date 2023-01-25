@@ -19,6 +19,9 @@ void main() {
     if (option == 3) {
       c.askTransaction();
     }
+    if (option == 4) {
+      c.listTransactions();
+    }
   }
 }
 
@@ -33,6 +36,7 @@ class Console {
     print('1. crear cuenta');
     print('2. mostrar cuentas');
     print('3. crear transacciones');
+    print('4. listar movimientos');
     int option = read_int();
     print('');
     return option;
@@ -192,6 +196,21 @@ class Console {
     print('Fecha de transaccion: ${date} ');
   }
 
+  void listTransactions() {
+    List<Transaction> transactions = tracker.transactions;
+    if (transactions.length <= 0) {
+      print('Aún no hay movimientos registrados.');
+    } else {
+      print('---Lista de movimientos---');
+      for (Transaction transaction in transactions) {
+        print(transaction.description);
+        for (TransactionDetail detail in transaction.details) {
+          print('la Cuenta: ${detail.account.name}, el Valor: ${detail.value}');
+        }
+      }
+    }
+  }
+
   Account selectAccount(String message, List<Account> accounts,
       Set<int> chossenAccounts, bool virtual) {
     Account? accountSelected;
@@ -255,7 +274,7 @@ class Console {
 class AccountTracker {
   List<Account> accounts = [
     Account.create('bancolombia', false, 1000),
-    Account.create('vacaciones', true, 500),
+    Account.create('vacaciones', true, 1000),
   ];
   List<Transaction> transactions = [];
 
