@@ -190,7 +190,7 @@ class Console {
       }
     }
     DateTime date = DateTime.now();
-    Transaction transaction = Transaction(description, date, income);
+    Transaction transaction = Transaction(description, date, income, details);
     tracker.transactions.add(transaction);
 
     print('Fecha de transaccion: ${date} ');
@@ -321,10 +321,10 @@ class Transaction {
   String description;
   DateTime dateTime;
   bool income;
-  List<TransactionDetail> details = [];
+  List<TransactionDetail> details;
 
-  Transaction(
-      String this.description, DateTime this.dateTime, bool this.income);
+  Transaction(String this.description, DateTime this.dateTime, bool this.income,
+      List<TransactionDetail> this.details);
 }
 
 class TransactionDetail {
