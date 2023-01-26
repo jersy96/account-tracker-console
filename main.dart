@@ -22,6 +22,9 @@ void main() {
     if (option == 4) {
       c.listTransactions();
     }
+    if (option == 5) {
+      c.filterTransaction();
+    }
   }
 }
 
@@ -36,7 +39,9 @@ class Console {
     print('1. crear cuenta');
     print('2. mostrar cuentas');
     print('3. crear transacciones');
-    print('4. listar movimientos');
+    print('4. listar transacciones ');
+    print('5. filtrar transacciones');
+
     int option = read_int();
     print('');
     return option;
@@ -190,7 +195,12 @@ class Console {
       }
     }
     DateTime date = DateTime.now();
-    Transaction transaction = Transaction(description, date, income, details);
+    Transaction transaction = Transaction(
+      description,
+      date,
+      income,
+      details,
+    );
     tracker.transactions.add(transaction);
 
     print('Fecha de transaccion: ${date} ');
@@ -206,6 +216,28 @@ class Console {
         print(transaction.description);
         for (TransactionDetail detail in transaction.details) {
           print('la Cuenta: ${detail.account.name}, el Valor: ${detail.value}');
+        }
+      }
+    }
+  }
+
+  void filterTransaction() {
+    print('cual es el valor por el que desea filtrar ?');
+    double filterValue = read_double();
+    if (filterValue <= 0) {
+      print('no hay ninguna transacción menor a cero.');
+    } else {
+      print('------filtro por valor -------');
+
+      List<Transaction> filteredTransactions = tracker.transactions
+          .where((transaction) => transaction.getTotalValue() == filterValue)
+          .toList();
+
+      for (Transaction transaction in filteredTransactions) {
+        print(transaction.description);
+        for (TransactionDetail detail in transaction.details) {
+          print(
+              'la Cuenta es : ${detail.account.name}, valor de cuenta: ${detail.value}');
         }
       }
     }
@@ -229,7 +261,7 @@ class Console {
           print('Esta cuenta no existe');
         } else if (accountSelected.virtual != virtual) {
           if (accountSelected.virtual) {
-            print('esta cuenta es virual');
+            print('esta cuenta es virtual');
           } else {
             print('esta cuenta es fisica');
           }
@@ -325,6 +357,14 @@ class Transaction {
 
   Transaction(String this.description, DateTime this.dateTime, bool this.income,
       List<TransactionDetail> this.details);
+
+  double getTotalValue() {
+    double totalValue = 0;
+    for (int i = 0; i < details.length; i++) {
+      totalValue = totalValue + details[i].value;
+    }
+    return totalValue;
+  }
 }
 
 class TransactionDetail {
